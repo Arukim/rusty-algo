@@ -1,0 +1,7 @@
+[workspace]
+
+members = [
+    "cuckoo-hash",
+    "cuckoo-hash-cli",
+    "uni-hash"
+]
