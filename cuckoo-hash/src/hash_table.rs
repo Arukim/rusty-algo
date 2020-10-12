@@ -88,17 +88,25 @@ impl<TValue: Clone + Copy + Default> HashTable<TValue> {
 
         let (left_pos, right_pos) = (self.left(l_hash), self.right(r_hash));
 
-        match self.data[left_pos] {
-            None => self.data[left_pos] = Some(entry),
-            Some(_) => {}
+        if self.put(entry,left_pos) {
+            return;
         }
 
-        match self.data[right_pos] {
-            None => self.data[right_pos] = Some(entry),
-            Some(_) => {}
+        if self.put(entry, right_pos) {
+            return;
         }
 
         panic!("failed to insert the value");
+    }
+
+    fn put(&mut self, entry: HashEntry<TValue>, pos: usize) -> bool {
+        match self.data[pos] {
+            None => {
+                self.data[pos] = Some(entry);
+                true
+            }
+            Some(_) => false
+        }
     }
 
     fn get_hash(&self, value: usize) -> (usize, usize) {
