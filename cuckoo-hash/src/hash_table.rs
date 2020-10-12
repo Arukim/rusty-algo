@@ -1,5 +1,9 @@
 use uni_hash::HashClip;
 
+const INITIAL_SIZE: usize = 4;
+const MAX_REHASH: usize = 5;
+const MAX_REPLACE_DEPTH: usize = 5;
+
 pub struct HashTable<TValue> {
     data: Vec<Option<HashEntry<TValue>>>,
     count: usize,
@@ -13,8 +17,6 @@ struct HashEntry<TValue> {
     key: usize,
     value: TValue,
 }
-
-const INITIAL_SIZE: usize = 4;
 
 impl<TValue: Clone + Copy + Default> HashTable<TValue> {
     pub fn new() -> HashTable<TValue> {
@@ -83,17 +85,45 @@ impl<TValue: Clone + Copy + Default> HashTable<TValue> {
         }
     }
 
-    fn insert(&mut self, entry: HashEntry<TValue>) {
+    fn insert_rec(&mut self, entry: HashEntry<TValue>, depth: usize) -> bool {
         let (l_hash, r_hash) = self.get_hash(entry.key);
-
         let (left_pos, right_pos) = (self.left(l_hash), self.right(r_hash));
 
-        if self.put(entry,left_pos) {
-            return;
+        if self.put(entry, left_pos) {
+            return true;
         }
 
         if self.put(entry, right_pos) {
-            return;
+            return true;
+        }
+
+        if depth == MAX_REPLACE_DEPTH {
+            // we need to restore items back
+            return false;
+        }
+
+        let replace_pos = if depth % 2 == 0 { left_pos } else { right_pos };
+
+        let evicted = self.data[replace_pos];
+        self.data[replace_pos] = Some(entry);
+        let res = self.insert_rec(evicted.unwrap(), depth + 1);
+
+        if !res {
+            self.data[replace_pos] = evicted;
+        }
+
+        return res;
+    }
+
+    fn insert(&mut self, entry: HashEntry<TValue>) {
+        for _ in 0..MAX_REHASH {
+            if self.insert_rec(entry, 0) {
+                return;
+            } else {
+                println!("rehash happens!");
+                self.current_hash += 1;
+                self.rehash();
+            }
         }
 
         panic!("failed to insert the value");
@@ -105,7 +135,7 @@ impl<TValue: Clone + Copy + Default> HashTable<TValue> {
                 self.data[pos] = Some(entry);
                 true
             }
-            Some(_) => false
+            Some(_) => false,
         }
     }
 

@@ -5,17 +5,23 @@ fn main() {
     let mut rng = rand::thread_rng();
     let mut table = HashTable::new();
 
-    for i in 1..16 {
+    println!("Adding 16 values");
+    for i in 0..16 {
         table.add(i,i)
     }
 
-    for i in 1..16 {
+    println!("Checking 16 values");
+    for i in 0..16 {
         let found = table.check(i);
-        println!("key {0} {1}", i, if found {"found"} else {"not found"});
+        if !found {
+            println!("key {0} not found", i);
+            panic!("key not found!");
+        }
     }
 
+    println!("Adding random values");
     table = HashTable::new();
-    for i in 0..16 {        
+    for i in 0..1024 {        
         table.add(rng.gen::<usize>(), i)
     }
 }
