@@ -6,7 +6,7 @@ fn main() {
     let mut table = HashTable::new();
 
     for i in 1..16 {
-        table.add(i)
+        table.add(i,i)
     }
 
     for i in 1..16 {
@@ -15,7 +15,7 @@ fn main() {
     }
 
     table = HashTable::new();
-    for _ in 0..16 {        
-        table.add(rng.gen::<usize>())
+    for i in 0..16 {        
+        table.add(rng.gen::<usize>(), i)
     }
 }
